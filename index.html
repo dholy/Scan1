@@ -1,20 +1,43 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Akses Kamera Belakang</title>
+    <title>Pemindai Barcode Real-time</title>
+    <script src="https://cdn.jsdelivr.net/npm/quagga@1.3.2/dist/quagga.min.js"></script>
 </head>
 <body>
+    <video id="video" autoplay></video>
     <canvas id="videoCanvas"></canvas>
+    <div id="result"></div>
 
     <script>
         const video = document.createElement('video');
         const canvas = document.getElementById('videoCanvas');
         const context = canvas.getContext('2d');
+        const resultDiv = document.getElementById('result');
 
         navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
             .then(stream => {
                 video.srcObject = stream;
                 video.play();
+
+                // Inisialisasi Quagga.js
+                Quagga.init({
+                    inputStream: {
+                        type: "LiveStream",
+                        target: video
+                    },
+                    decoder: {
+                        readers: ["ean_reader", "code_128_reader"]
+                    }
+                }, err => {
+                    if (err) console.log(err);
+                    else Quagga.start();
+                });
+
+                // Tangkap hasil pemindaian
+                Quagga.onDetected = (result) => {
+                    resultDiv.textContent = result.codeResult.code;
+                };
 
                 // Fungsi untuk menggambar video ke canvas
                 const draw = () => {
