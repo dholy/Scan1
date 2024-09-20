@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pemindai QR Code dan Barcode</title>
+  <script src="https://cdn.jsdelivr.net/npm/quagga@1.3.2/dist/quagga.min.js"></script>
+  <style>
+    #video-wrapper {
+      display: none; /* Sembunyikan video sampai tombol diklik */
+      width: 300px;
+      height: 200px;
+      border: 1px solid black;
+    }
+    #captured-image {
+      display: none;
+      max-width: 300px;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+  <div id="video-wrapper">
+    <video id="video" autoplay></video>
+  </div>
+  <div id="result"></div>
+  <img id="captured-image" style="display: none;">
+  <div id="image-container">
+    <img id="displayed-image" src="" alt="Gambar yang Diambil">
+  </div>
+  <button id="capture-button">Ambil Gambar</button>
+  <button id="save-image-button" disabled>Simpan Gambar</button>
+
+  <script>
+    let isCameraStarted = false;
+
+    document.getElementById('capture-button').addEventListener('click', () => {
+      if (!isCameraStarted) {
+        navigator.mediaDevices.getUserMedia({ video: true })
+          .then(stream => {
+            const video = document.getElementById('video');
+            video.srcObject = stream;
+            video.style.display = 'block';
+            isCameraStarted = true;
+
+            Quagga.init({
+              inputStream: {
+                type: "LiveStream",
+                target: video,
+                stream: stream
+              },
+              decoder: {
+                readers: ["ean_reader", "code_128_reader", "qrcode"]
+              }
+            }, err => {
+              if (err) console.error(err);
+              else Quagga.start();
+            });
+          })
+          .catch(err => console.error('Error accessing camera:', err));
+      } else {
+        // Ambil gambar saat kamera sudah aktif
+        const video = document.getElementById('video');
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const context = canvas.getContext('2d');
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        document.getElementById('captured-image').src = canvas.toDataURL();
+        document.getElementById('captured-image').style.display = 'block';
+        document.getElementById('displayed-image').src = canvas.toDataURL();
+        document.getElementById('displayed-image').style.display = 'block';
+
+        // Aktifkan tombol simpan gambar setelah gambar diambil
+        document.getElementById('save-image-button').disabled = false;
+      }
+    });
+
+    document.getElementById('save-image-button').addEventListener('click', () => {
+      const link = document.createElement('a');
+      link.download = 'captured_image.png';
+      link.href = document.getElementById('captured-image').src;
+      link.click();
+    });
+  </script>
+</body>
+</html>

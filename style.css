@@ -1,0 +1,10 @@
+#video-wrapper {
+            width: 150px;
+            height: 150px;
+            border: 1px solid black;
+        }
+
+#captured-image {
+            max-width: 300px;
+            height: auto;
+        }
