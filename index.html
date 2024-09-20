@@ -4,23 +4,29 @@
     <title>Akses Kamera Belakang</title>
 </head>
 <body>
-    <video id="video" autoplay></video>
+    <canvas id="videoCanvas"></canvas>
 
     <script>
-        // Fungsi untuk meminta akses ke kamera belakang
-        function startVideo() {
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-                .then(stream => {
-                    const video = document.getElementById('video');
-                    video.srcObject = stream;
-                })
-                .catch(error => {
-                    console.error('Error accessing camera:', error);
-                });
-        }
+        const video = document.createElement('video');
+        const canvas = document.getElementById('videoCanvas');
+        const context = canvas.getContext('2d');
 
-        // Memulai fungsi saat halaman dimuat
-        startVideo();
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+            .then(stream => {
+                video.srcObject = stream;
+                video.play();
+
+                // Fungsi untuk menggambar video ke canvas
+                const draw = () => {
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    requestAnimationFrame(draw);
+                };
+
+                draw();
+            })
+            .catch(error => {
+                console.error('Error accessing camera:', error);
+            });
     </script>
 </body>
 </html>
